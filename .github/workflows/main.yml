@@ -1,0 +1,44 @@
+name: Build Onedrive CLI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    name: Build Binaries
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Initialize Go module (if not already)
+        run: |
+          if [ ! -f go.mod ]; then
+            go mod init onedrivecli
+          fi
+          go mod tidy
+
+      - name: Build Linux amd64 binary
+        run: |
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o onedrivecli
+
+      - name: Build Windows amd64 binary
+        run: |
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o onedrivecli.exe
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: onedrivecli-binaries
+          path: |
+            onedrivecli
+            onedrivecli.exe
