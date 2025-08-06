@@ -2,52 +2,76 @@ package main
 
 import (
     "fmt"
+    "log"
     "os"
 )
 
+// Entry point
 func main() {
     if len(os.Args) < 2 {
         fmt.Println("Usage: onedrivecli <command> [args]")
         fmt.Println("Commands:")
-        fmt.Println("  auth       - Login and save token")
-        fmt.Println("  ls [path]  - List files and folders (default: /)")
-        fmt.Println("  dl <path>  - Generate direct download link")
-        fmt.Println("  link <path>- Create shareable OneDrive link")
-        fmt.Println("  storage    - Check OneDrive storage usage")
-        fmt.Println("  explorer   - Interactive OneDrive explorer")
+        fmt.Println("  auth                    Login via device code")
+        fmt.Println("  ls <path>               List files/folders in OneDrive")
+        fmt.Println("  link <path>             Generate a share link")
+        fmt.Println("  dl <path>               Generate a direct download link")
+        fmt.Println("  download <remote> <local> Download a file or folder with progress")
+        fmt.Println("  storage                 Check OneDrive storage usage")
+        fmt.Println("  explorer                Interactive OneDrive explorer")
         return
     }
 
     switch os.Args[1] {
     case "auth":
-        DeviceLogin()
+        DeviceLogin() 
 
     case "ls":
-        path := "/"
-        if len(os.Args) > 2 {
-            path = os.Args[2]
-        }
-        ListFiles(path)
-
-    case "dl":
         if len(os.Args) < 3 {
-            fmt.Println("Usage: onedrivecli dl <path>")
+            fmt.Println("Usage: onedrivecli ls <path>")
             return
         }
-        DownloadFile(os.Args[2])
+        ListFiles(os.Args[2]) 
 
     case "link":
         if len(os.Args) < 3 {
             fmt.Println("Usage: onedrivecli link <path>")
             return
         }
-        fmt.Println(GetShareLink(os.Args[2]))
+        link := GetShareLink(os.Args[2]) // from link.go
+        if link == "" {
+            fmt.Println("❌ Failed to generate share link.")
+        } else {
+            fmt.Println("🔗 Share Link:", link)
+        }
+
+    case "dl":
+        if len(os.Args) < 3 {
+            fmt.Println("Usage: onedrivecli dl <path>")
+            return
+        }
+        link := GetDirectDownloadLink(os.Args[2]) 
+        if link == "" {
+            fmt.Println("❌ Failed to generate direct download link.")
+        } else {
+            fmt.Println("⬇️ Direct Download Link:", link)
+        }
+
+    case "download":
+        if len(os.Args) < 4 {
+            fmt.Println("Usage: onedrivecli download <remote_path_or_id> <local_path>")
+            return
+        }
+        remote := os.Args[2]
+        local := os.Args[3]
+        if err := StartDownload(remote, local); err != nil {
+            log.Fatal("Download failed:", err)
+        }
 
     case "storage":
         CheckStorage()
 
     case "explorer":
-        Explorer()
+        Explorer() 
 
     default:
         fmt.Println("Unknown command:", os.Args[1])

@@ -10,13 +10,15 @@ import (
 )
 
 type DriveItem struct {
-    Name   string `json:"name"`
-    ID     string `json:"id"`
-    Size   int64  `json:"size"`
-    Folder *struct {
+    Name        string `json:"name"`
+    ID          string `json:"id"`
+    Size        int64  `json:"size"`
+    Folder      *struct {
         ChildCount int `json:"childCount"`
     } `json:"folder,omitempty"`
-    File *struct{} `json:"file,omitempty"`
+    File        *struct{}   `json:"file,omitempty"`
+    DownloadURL string      `json:"@microsoft.graph.downloadUrl,omitempty"`
+    Children    []DriveItem `json:"value,omitempty"`
 }
 
 type DriveResponse struct {
