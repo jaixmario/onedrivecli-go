@@ -1,0 +1,5 @@
+# Ignore token file
+token.json
+
+# Ignore all "ok" directories anywhere
+**/ok/

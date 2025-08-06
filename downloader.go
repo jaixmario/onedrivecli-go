@@ -65,7 +65,6 @@ func fetchDriveItem(accessToken, remote string) (*DriveItem, error) {
     return &item, nil
 }
 
-// Calculate total size of a file or folder
 func calcTotalSize(item *DriveItem) int64 {
     if item.File != nil {
         return item.Size
@@ -77,7 +76,6 @@ func calcTotalSize(item *DriveItem) int64 {
     return total
 }
 
-// Download a single file with progress tracking
 func downloadFileWithProgress(url, localPath string, downloaded *int64) error {
     os.MkdirAll(filepath.Dir(localPath), os.ModePerm)
 
@@ -110,7 +108,7 @@ func downloadFileWithProgress(url, localPath string, downloaded *int64) error {
     return nil
 }
 
-// Recursive downloader for files and folders
+
 func downloadRecursive(accessToken string, item *DriveItem, localPath string, downloaded *int64) error {
     if item.File != nil {
         fi, err := os.Stat(localPath)
@@ -142,9 +140,25 @@ func StartDownload(remote, localPath string) error {
     ctx := context.Background()
     _ = ctx
 
+    if localPath == "." {
+        cwd, _ := os.Getwd()
+        localPath = cwd
+    }
+
     item, err := fetchDriveItem(accessToken, remote)
     if err != nil {
         return err
+    }
+    
+    fi, statErr := os.Stat(localPath)
+    if statErr == nil && fi.IsDir() && item.Folder != nil {
+        localPath = filepath.Join(localPath, item.Name)
+    } else if os.IsNotExist(statErr) {
+        if item.Folder != nil {
+            os.MkdirAll(localPath, os.ModePerm)
+        } else {
+            os.MkdirAll(filepath.Dir(localPath), os.ModePerm)
+        }
     }
 
     totalSize := calcTotalSize(item)
@@ -180,11 +194,12 @@ func StartDownload(remote, localPath string) error {
         }
     }()
 
+    fmt.Println("Starting download to:", localPath)
     if err := downloadRecursive(accessToken, item, localPath, &downloaded); err != nil {
         return err
     }
 
     close(done)
-    fmt.Println("\n Download complete!")
+    fmt.Println("\nDownload complete!")
     return nil
 }
