@@ -1,5 +1,5 @@
 # Ignore token file
 token.json
-
+onedrivecli
 # Ignore all "ok" directories anywhere
 **/ok/
