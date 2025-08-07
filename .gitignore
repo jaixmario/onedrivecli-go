@@ -1,5 +1,7 @@
 # Ignore token file
 token.json
+ok
+go.mod
 onedrivecli
 # Ignore all "ok" directories anywhere
 **/ok/
